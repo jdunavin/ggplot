@@ -77,3 +77,84 @@ label <- data.frame(waiting=c(55,80), eruptions=c(2,4.3), label=c("peak one", "p
 ggplot(faithfuld, aes(waiting, eruptions)) +
   geom_tile(aes(fill=density)) +
   geom_label(data=label, aes(label=label))
+
+# A different type of legend
+ggplot(mpg, aes(displ, hwy, color=class)) + geom_point()
+ggplot(mpg, aes(displ, hwy, color=class)) +
+  geom_point(show.legend = F) +
+  directlabels::geom_dl(aes(label=class), method="smart.grid")
+
+# Annotations
+ggplot(economics, aes(date, unemploy)) + geom_line()
+
+ggplot(economics) +
+  geom_rect(
+    aes(xmin=start, xmax=end, fill=party),
+    ymin=-Inf, ymax=Inf, alpha=0.2,
+    data = presidential
+  ) +
+  geom_vline(
+    aes(xintercept=as.numeric(start)),
+    data=presidential,
+    color="grey50", alpha=0.5
+  ) +
+  geom_text(
+    aes(x=start, y=2500, label=name),
+    data=presidential,
+    size=3,vjust=0,hjust=0,nudge_x=50
+  ) + 
+  geom_line(aes(date, unemploy)) +
+  scale_fill_manual(values=c("blue","red"))
+
+### EXERCISES 3.5.5
+# 1) 
+ggplot(mpg, aes(cyl, hwy, group=cyl)) + geom_boxplot()
+
+# 2) 
+ggplot(mpg, aes(displ, cty, group=trunc(displ))) + geom_boxplot()
+
+# 3) 
+df = data.frame(x=1:3, y=1:3, color=c(1,3,5))
+ggplot(df, aes(x,y, color=factor(color))) +
+  geom_line(aes(group=1), size=2) +
+  geom_point(size=5)
+# Need the group=1 to put all the points on the same line, 
+# they're really three different categories
+# If group were a vector it would look different.
+
+# 4)
+ggplot(mpg, aes(drv)) + geom_bar(color="white")
+ggplot(mpg, aes(drv, fill=hwy, group=hwy)) + geom_bar(color="white")
+mpg2 <- mpg %>% arrange(hwy) %>% mutate(id = seq_along(hwy))
+ggplot(mpg2, aes(drv, fill=hwy, group=id)) + geom_bar(color="white")
+
+# 5) Babynames
+library(babynames)
+hadley <- dplyr::filter(babynames, name=="Hadley")
+ggplot(hadley, aes(year,n)) + geom_line()
+# Graph uses the wrong geom
+ggplot(hadley, aes(year,n)) + geom_point()
+
+## Section 3.6 - Surface plots
+ggplot(faithfuld, aes(eruptions, waiting)) +
+  geom_contour(aes(z=density, color=..level..))
+
+ggplot(faithfuld, aes(eruptions, waiting)) +
+  geom_raster(aes(fill=density))
+
+## Bubble plots work better with fewer observations
+small <- faithfuld[seq(1, nrow(faithfuld),by=10),]
+ggplot(small, aes(eruptions, waiting)) +
+  geom_point(aes(size=density), alpha=1/3) +
+  scale_size_area()
+
+## Section 3.7 MAPS!
+library(maps) # not exactly accurate or uptodate
+mi_counties = map_data("county","michigan") %>% select(lon=long, lat, group, id=subregion)
+head(mi_counties)
+ggplot(mi_counties, aes(lon,lat)) +
+  geom_polygon(aes(group=group)) +
+  coord_quickmap()
+ggplot(mi_counties, aes(lon,lat)) +
+  geom_polygon(aes(group=group), fill=NA, color="grey50") +
+  coord_quickmap()
